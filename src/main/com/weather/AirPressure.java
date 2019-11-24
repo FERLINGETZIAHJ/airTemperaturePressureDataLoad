@@ -3,12 +3,15 @@ package com.weather;
 import org.apache.spark.sql.*;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
 import org.apache.spark.sql.types.StructType;
 import org.apache.spark.sql.types.*;
+
 import static org.apache.spark.sql.functions.*;
 
 import scala.collection.JavaConversions;
@@ -22,10 +25,11 @@ public class AirPressure {
         SparkSession spark = SparkSession.builder().appName("MyAirPressureDataApp").config("spark.master", "local").getOrCreate();
         System.setProperty("hadoop.home.dir", "C:\\hadoop\\bin\\winutils.exe");
         Logger.getLogger("org").setLevel(Level.OFF);
-        boolean isWriteToHDFSComplete = processAirPressureData(spark,CommonConstants.airPressureDataDirectoryName);
+        boolean isWriteToHDFSComplete = processAirPressureData(spark, CommonConstants.airPressureDataDirectoryName);
         return isWriteToHDFSComplete;
     }
-    private static boolean processAirPressureData(SparkSession spark,String directoryName) {
+
+    private static boolean processAirPressureData(SparkSession spark, String directoryName) {
         boolean writeToHDFSFlag = false;
         try {
             Dataset<Row> MergedAirPressureDS = null;
@@ -39,27 +43,27 @@ public class AirPressure {
                 Dataset<Row> airPressureDS = null;
                 if (listOfFile.isFile()) {
                     filename = listOfFile.getName();
-                    log.info("Processing Air Pressure Data File : " + filename );
+                    log.info("Processing Air Pressure Data File : " + filename);
                     String rangeOfYears = rangeMapping(filename);
                     //log.info("rangeOfYears: " + rangeOfYears);
                     Dataset rawAirPressureDS = read3TimesObsInputAndFrameDataset(spark, directoryName, filename, getCustomStructType(rangeOfYears));
-                    if(rawAirPressureDS==null)
+                    if (rawAirPressureDS == null)
                         continue;
                     validData = CommonValidations.validateIfFileContainsRelevantData(filename, rawAirPressureDS);
-                    if(validData)
+                    if (validData)
                         airPressureDS = tohPaConversion(rawAirPressureDS, rangeOfYears, getRequiredSelectColumnsSeq());
                 } else if (listOfFile.isDirectory()) {
                     log.info("Directory " + listOfFile.getName());
                 }
                 if (airPressureDS != null && MergedAirPressureDS == null) {
                     MergedAirPressureDS = airPressureDS;
-                } else if(airPressureDS != null) {
+                } else if (airPressureDS != null) {
                     MergedAirPressureDS = airPressureDS.union(MergedAirPressureDS);
-                }else {
-                    log.error("File Doesn't Contain the Expected Years Data:"+filename);
+                } else {
+                    log.error("File Doesn't Contain the Expected Years Data:" + filename);
                 }
             }
-            if(MergedAirPressureDS != null) {
+            if (MergedAirPressureDS != null) {
                 Dataset<org.apache.spark.sql.Row> MergedTempDSWithoutNULL = MergedAirPressureDS.na().fill(Double.NaN);
                 MergedTempDSWithoutNULL.cache();
 
@@ -71,33 +75,32 @@ public class AirPressure {
                     FinalAirPressureDataset = MergedTempDSWithoutNULL;
 
                 writeToHDFSFlag = writePressureDataToHDFS(FinalAirPressureDataset);
-            }else {
+            } else {
                 log.info("All the Records are Corrupted or Invalid");
             }
             spark.stop();
         } catch (Exception e) {
-            log.info("Exception Occurred While Processing Pressure Data- "+e.getMessage());
+            log.info("Exception Occurred While Processing Pressure Data- " + e.getMessage());
             e.printStackTrace();
         }
         return writeToHDFSFlag;
     }
 
-    public static String rangeMapping(String inputFileName)
-    {
+    public static String rangeMapping(String inputFileName) {
         HashMap<String, String> hmap = new HashMap<String, String>();
 
-        hmap.put("stockholm_barometer_1756_1858.txt","1756_1858");
-        hmap.put("stockholm_barometer_1859_1861.txt","1859_1861");
-        hmap.put("stockholm_barometer_1862_1937.txt","1862_1937");
-        hmap.put("stockholm_barometer_1938_1960.txt","1938_1960");
-        hmap.put("stockholm_barometer_1961_2012.txt","1961_2012");
-        hmap.put("stockholm_barometer_2013_2017.txt","MAN_2013_2017");
-        hmap.put("stockholmA_barometer_2013_2017.txt","AUTO_2013_2017");
+        hmap.put("stockholm_barometer_1756_1858.txt", "1756_1858");
+        hmap.put("stockholm_barometer_1859_1861.txt", "1859_1861");
+        hmap.put("stockholm_barometer_1862_1937.txt", "1862_1937");
+        hmap.put("stockholm_barometer_1938_1960.txt", "1938_1960");
+        hmap.put("stockholm_barometer_1961_2012.txt", "1961_2012");
+        hmap.put("stockholm_barometer_2013_2017.txt", "MAN_2013_2017");
+        hmap.put("stockholmA_barometer_2013_2017.txt", "AUTO_2013_2017");
 
         return hmap.get(inputFileName);
     }
-    public static Seq<Column> getRequiredSelectColumnsSeq()
-    {
+
+    public static Seq<Column> getRequiredSelectColumnsSeq() {
         List<Column> requiredSelectColumns = new ArrayList<Column>();
         requiredSelectColumns.add(col("YEAR"));
         requiredSelectColumns.add(col("MONTH"));
@@ -110,9 +113,9 @@ public class AirPressure {
         return JavaConversions.asScalaBuffer(requiredSelectColumns).seq();
 
     }
-    public static StructType getCustomStructType(String rangeMapping)
-    {
-        if(rangeMapping.equalsIgnoreCase("1859_1861")) {
+
+    public static StructType getCustomStructType(String rangeMapping) {
+        if (rangeMapping.equalsIgnoreCase("1859_1861")) {
             return DataTypes.createStructType(new StructField[]{
                     DataTypes.createStructField("YEAR", DataTypes.IntegerType, false),
                     DataTypes.createStructField("MONTH", DataTypes.IntegerType, false),
@@ -128,7 +131,7 @@ public class AirPressure {
                     DataTypes.createStructField("REDUCED_AIR_PRESSURE3", DataTypes.DoubleType, true),
                     DataTypes.createStructField("_corrupt_record", DataTypes.StringType, true)
             });
-        } else if(rangeMapping.equalsIgnoreCase("1756_1858")) {
+        } else if (rangeMapping.equalsIgnoreCase("1756_1858")) {
             return DataTypes.createStructType(new StructField[]{
                     DataTypes.createStructField("YEAR", DataTypes.IntegerType, false),
                     DataTypes.createStructField("MONTH", DataTypes.IntegerType, false),
@@ -141,7 +144,7 @@ public class AirPressure {
                     DataTypes.createStructField("BARO_TEMP_OBS3", DataTypes.DoubleType, true),
                     DataTypes.createStructField("_corrupt_record", DataTypes.StringType, true)
             });
-        }else{
+        } else {
             return DataTypes.createStructType(new StructField[]{
                     DataTypes.createStructField("YEAR", DataTypes.IntegerType, false),
                     DataTypes.createStructField("MONTH", DataTypes.IntegerType, false),
@@ -158,7 +161,7 @@ public class AirPressure {
      * Method to read the Input File and frame Datasets.
      * Inputs : SparkSession and FileName
      *
-     * @param spark "Spark Session"
+     * @param spark         "Spark Session"
      * @param inputFileName "Input File Name"
      * @return : DATASET
      */
@@ -173,13 +176,14 @@ public class AirPressure {
             //pressureRawDS.show();
             validPressureRawDS = writeBadRecordsToHDFS(pressureRawDS);
         } catch (Exception e) {
-            log.error("Error Occurred while reading the Data from File : "+e.getMessage());
+            log.error("Error Occurred while reading the Data from File : " + e.getMessage());
         }
         return validPressureRawDS;
     }
 
     /**
      * Writing the Invalid Records to HDFS to inspect later.
+     *
      * @param pressureRawDS "Air Temperature Data with Corrupt Records"
      */
     private static Dataset<Row> writeBadRecordsToHDFS(Dataset<Row> pressureRawDS) {
@@ -187,13 +191,12 @@ public class AirPressure {
         try {
             Dataset<Row> badRecords = pressureRawDS.filter(col("_corrupt_record").isNotNull())
                     .cache();
-            if(badRecords!= null && badRecords.count()>0) {
-                log.info("Writing "+badRecords.count()+" Invalid Records to HDFS.");
+            if (badRecords != null && badRecords.count() > 0) {
+                log.info("Writing " + badRecords.count() + " Invalid Records to HDFS.");
                 badRecords.write().mode(SaveMode.Overwrite).csv(CommonConstants.airTemperatureHDFSFilePathForCorruptRecords);
-                validAirPressureDS =  pressureRawDS.filter(col("_corrupt_record").isNull())
+                validAirPressureDS = pressureRawDS.filter(col("_corrupt_record").isNull())
                         .drop("_corrupt_record");
-            }
-            else {
+            } else {
                 validAirPressureDS = pressureRawDS.drop("_corrupt_record");
             }
         } catch (NullPointerException e) {
@@ -205,8 +208,9 @@ public class AirPressure {
 
     /**
      * This Method is used to Convert all the units of Air Pressure Reading to hPa
-     * @param validPressureRawDS - Air Pressure Data
-     * @param rangeOfYears - Split in years
+     *
+     * @param validPressureRawDS    - Air Pressure Data
+     * @param rangeOfYears          - Split in years
      * @param requiredSelectColumns - Columns that are required while writing to HDFS
      * @return dataset
      */
@@ -227,49 +231,53 @@ public class AirPressure {
                 columnNames.add("BARO_OBS1");
                 columnNames.add("BARO_OBS2");
                 columnNames.add("BARO_OBS3");
-                conversionUnit = CommonConstants.swedishInchTommHg * CommonConstants.mmHgTohPa ;
+                conversionUnit = CommonConstants.swedishInchTommHg * CommonConstants.mmHgTohPa;
                 airPressureDS = airPressureTohPaConversion(airPressureDS, columnNames, conversionUnit, requiredSelectColumns);
             }
             if (rangeOfYears.equalsIgnoreCase("1859_1861")) {
                 columnNames.add("REDUCED_AIR_PRESSURE1");
                 columnNames.add("REDUCED_AIR_PRESSURE2");
                 columnNames.add("REDUCED_AIR_PRESSURE3");
-                conversionUnit = CommonConstants.swedishInchTommHg * CommonConstants.mmHgTohPa * 0.1 ;
+                conversionUnit = CommonConstants.swedishInchTommHg * CommonConstants.mmHgTohPa * 0.1;
                 airPressureDS = airPressureTohPaConversion(airPressureDS, columnNames, conversionUnit, requiredSelectColumns);
             }
         } catch (Exception e) {
-            log.info("Exception occurred when converting the Air Pressure Units to hPa Units : "+e.getMessage());
+            log.info("Exception occurred when converting the Air Pressure Units to hPa Units : " + e.getMessage());
         }
         return airPressureDS;
     }
+
     /**
      * This Method is used to Convert the Barometer Observations into hPa.
      * This handles the below Scenarios:
-     *  mmHg to hPa - done by multiplying the Air Pressure Observations in mmHg with Constant Value (1.333224) - Formula = mmHg * 1.33224
-     *  swedishInches (29.69mm) to hPa - done by converting SwedishInches into mmHg and then finally into hPa. - Formula = swedishInches * 25.4 * 1.33224
-     *  0.1 * swedishInches (2.969mm) to hPa - done by converting SwedishInches into mmHg and then finally into hPa. - Formula = 0.1 * swedishInches * 25.4 * 1.33224
+     * mmHg to hPa - done by multiplying the Air Pressure Observations in mmHg with Constant Value (1.333224) - Formula = mmHg * 1.33224
+     * swedishInches (29.69mm) to hPa - done by converting SwedishInches into mmHg and then finally into hPa. - Formula = swedishInches * 25.4 * 1.33224
+     * 0.1 * swedishInches (2.969mm) to hPa - done by converting SwedishInches into mmHg and then finally into hPa. - Formula = 0.1 * swedishInches * 25.4 * 1.33224
+     *
      * @param airPressureDS - "The Dataset from the provided txtFile containing the Barometer Readings"
-     * @param ColNames - "Column Names which is to be converted into hPa"
-     * @param unit - "Unit Conversion values from which the Conversion is to be done to hPa"
+     * @param ColNames      - "Column Names which is to be converted into hPa"
+     * @param unit          - "Unit Conversion values from which the Conversion is to be done to hPa"
      * @param selectColumns - "Required Columns for further processing"
      * @return Dataset - "Output Dataset Containing the Observation Details in hPa"
      */
     private static Dataset<Row> airPressureTohPaConversion(Dataset<Row> airPressureDS, List<String> ColNames, Double unit, Seq<Column> selectColumns) {
         return airPressureDS
-                .withColumn("OBSERVATION1",when(col(ColNames.get(0)).isNotNull(),(col(ColNames.get(0)).multiply(unit)).cast(new DecimalType(38,1))).otherwise(col(ColNames.get(0))))
-                .withColumn("OBSERVATION2",when(col(ColNames.get(1)).isNotNull(),(col(ColNames.get(1)).multiply(unit)).cast(new DecimalType(38,1))).otherwise(col(ColNames.get(1))))
-                .withColumn("OBSERVATION3",when(col(ColNames.get(2)).isNotNull(),(col(ColNames.get(2)).multiply(unit)).cast(new DecimalType(38,1))).otherwise(col(ColNames.get(2))))
+                .withColumn("OBSERVATION1", when(col(ColNames.get(0)).isNotNull(), (col(ColNames.get(0)).multiply(unit)).cast(new DecimalType(38, 1))).otherwise(col(ColNames.get(0))))
+                .withColumn("OBSERVATION2", when(col(ColNames.get(1)).isNotNull(), (col(ColNames.get(1)).multiply(unit)).cast(new DecimalType(38, 1))).otherwise(col(ColNames.get(1))))
+                .withColumn("OBSERVATION3", when(col(ColNames.get(2)).isNotNull(), (col(ColNames.get(2)).multiply(unit)).cast(new DecimalType(38, 1))).otherwise(col(ColNames.get(2))))
                 .select(selectColumns);
     }
+
     /**
      * Writing the Air Pressure Data to HDFS using Append Save Mode as many text files are read and stored.
+     *
      * @param airPressureDSName - "AirPressureDataset to be written to HDFS."
      */
     private static boolean writePressureDataToHDFS(Dataset<Row> airPressureDSName) {
         boolean writeToHDFS = false;
         log.info("Writing the Pressure Data to HDFS");
         try {
-           airPressureDSName.write().partitionBy("SPLIT_RANGE", "YEAR").mode(SaveMode.Append).parquet(CommonConstants.airPressureHDFSFilePath);
+            airPressureDSName.write().partitionBy("SPLIT_RANGE", "YEAR").mode(SaveMode.Append).parquet(CommonConstants.airPressureHDFSFilePath);
             writeToHDFS = true;
         } catch (NullPointerException e) {
             log.error("Error thrown while writing the Dataset to HDFS." + e.getMessage());

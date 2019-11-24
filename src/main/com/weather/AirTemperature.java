@@ -44,7 +44,7 @@ public class AirTemperature {
                     log.info("Processing Air Temperature Data File :: " + filename);
                     temperatureDS = readInputAndFrameDataset(spark, CommonConstants.airTemperatureDataDirectoryName, filename);
                     //temperatureDS.show();
-                    if(temperatureDS==null)
+                    if (temperatureDS == null)
                         continue;
                     validData = CommonValidations.validateIfFileContainsRelevantData(filename, temperatureDS);
                 } else if (listOfFile.isDirectory()) {
@@ -57,10 +57,10 @@ public class AirTemperature {
                     assert temperatureDS != null;
                     MergedTempDS = temperatureDS.union(MergedTempDS);
                 } else {
-                    log.error("File Doesn't Contain the Expected Years Data:"+filename);
+                    log.error("File Doesn't Contain the Expected Years Data:" + filename);
                 }
             }
-            if(MergedTempDS != null) {
+            if (MergedTempDS != null) {
 
                 Dataset<Row> airTemperatureData = furtherDSProcessing(spark, MergedTempDS);
 
@@ -77,7 +77,7 @@ public class AirTemperature {
                 //Validate if multiple Data Exists for a day.
                 if (!multipleRecordsPerDayExists)
                     writeToHDFS = writeToHDFS(airTemperatureData);
-            }else{
+            } else {
                 log.info("All the Records are Corrupted or Invalid");
             }
             spark.stop();
@@ -90,7 +90,8 @@ public class AirTemperature {
 
     /**
      * Processing the Air Temperature further by categorizing it based on the Publisher of Data and also filling empty records with NaN.
-     * @param spark - "Spark Session"
+     *
+     * @param spark               - "Spark Session"
      * @param mergedTemperatureDS - "Dataset fetched from File"
      * @return Dataset
      */
@@ -113,6 +114,7 @@ public class AirTemperature {
     /**
      * Method to read the Input File and frame Datasets.
      * Inputs : SparkSession and FileName
+     *
      * @param spark         - "Spark Session"
      * @param inputFileName - "Input File Path"
      * @return : DATASET Containing the Data from File.
@@ -150,8 +152,9 @@ public class AirTemperature {
 
     /**
      * Writing the Invalid Records to HDFS to inspect later.
+     *
      * @param MergedTempDSWithoutNULL "Air Temperature Data with Corrupt Records"
-     *  return Dataset
+     *                                return Dataset
      */
     private static Dataset<Row> writeBadRecordsToHDFS(SparkSession spark, Dataset<Row> MergedTempDSWithoutNULL) {
         Dataset<Row> validAirTemperatureDS = null;
@@ -187,8 +190,8 @@ public class AirTemperature {
 
     /**
      * Writing the Dataset to HDFS using Append Save Mode as many text files are read and stored.
-     * @param targetAirTemperatureDataset "Dataset with Air Temperature Details"
      *
+     * @param targetAirTemperatureDataset "Dataset with Air Temperature Details"
      */
     private static boolean writeToHDFS(Dataset<Row> targetAirTemperatureDataset) {
         boolean writeToHDFS = false;
