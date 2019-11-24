@@ -53,7 +53,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Application.LoadWeatherDataToHDFS">
+  <component name="RunManager" selected="JUnit.AirPressureTest">
     <configuration name="LoadWeatherDataToHDFS" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.weather.LoadWeatherDataToHDFS" />
       <module name="waetherforecast" />
@@ -63,6 +63,21 @@
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="AirPressureTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="waetherforecast" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.weather.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.weather" />
+      <option name="MAIN_CLASS_NAME" value="com.weather.AirPressureTest" />
+      <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -78,22 +93,6 @@
       <option name="PACKAGE_NAME" value="com.weather" />
       <option name="MAIN_CLASS_NAME" value="com.weather.AirPressureTest" />
       <option name="METHOD_NAME" value="testAirPressureConversion" />
-      <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="AirPressureTest.testAirPressureSchema" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="waetherforecast" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.weather.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.weather" />
-      <option name="MAIN_CLASS_NAME" value="com.weather.AirPressureTest" />
-      <option name="METHOD_NAME" value="testAirPressureSchema" />
       <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -133,11 +132,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.AirPressureTest" />
+        <item itemvalue="JUnit.AirPressureTest.testAirPressureConversion" />
         <item itemvalue="Application.LoadWeatherDataToHDFS" />
         <item itemvalue="JUnit.AirPressureTest.testValidAirPressureRange" />
-        <item itemvalue="JUnit.AirPressureTest.testAirPressureConversion" />
         <item itemvalue="JUnit.AirTemperatureTest.testAirTemperatureSchema" />
-        <item itemvalue="JUnit.AirPressureTest.testAirPressureSchema" />
       </list>
     </recent_temporary>
   </component>
@@ -151,7 +150,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1574349527372</updated>
-      <workItem from="1574349545583" duration="142086000" />
+      <workItem from="1574349545583" duration="146149000" />
     </task>
     <servers />
   </component>
@@ -168,5 +167,16 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/com/weather/AirPressure.java</url>
+          <line>207</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

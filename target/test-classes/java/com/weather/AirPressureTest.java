@@ -11,6 +11,8 @@ import org.junit.Test;
 import scala.collection.Seq;
 import org.apache.spark.sql.types.*;
 
+import java.util.ArrayList;
+
 import static org.apache.spark.sql.functions.col;
 
 public class AirPressureTest {
@@ -121,35 +123,40 @@ public class AirPressureTest {
         boolean isConversionProper = false;
         Dataset convertedValueDS = null;
         String fileName = "stockholm_barometer_1859_1861.txt";
+        ArrayList<String> conversionreq = new ArrayList<String>(3);
+        conversionreq.add("1756_1858");
+        conversionreq.add("1859_1861");
+        conversionreq.add("1862_1937");
         initialSetup();
         Dataset<org.apache.spark.sql.Row> datasetReadFromFile = createSourceDataset(fileName);
-        Dataset convertedDS = convertPressureDatatohPa(datasetReadFromFile,fileName);
         String rangeOfYears = AirPressure.rangeMapping(fileName);
-        Dataset processedDS = null;
-        Dataset srcDS = null;
-        if(rangeOfYears.equalsIgnoreCase("1862_1937"))
-        {
-            convertedValueDS = getConvertedDS(rangeOfYears,convertedDS,CommonConstants.hPaTommHg);
-            processedDS = convertedValueDS.select("OBSERVATION1","OBSERVATION2","OBSERVATION3");
-            srcDS = datasetReadFromFile.select("OBSERVATION1","OBSERVATION2","OBSERVATION3");
+        Dataset convertedDS = null;
+        if(conversionreq.contains(rangeOfYears)) {
+            convertedDS = convertPressureDatatohPa(datasetReadFromFile, fileName);
+            Dataset processedDS = null;
+            Dataset srcDS = null;
+            if (rangeOfYears.equalsIgnoreCase("1862_1937")) {
+                convertedValueDS = getConvertedDS(rangeOfYears, convertedDS, CommonConstants.hPaTommHg);
+                processedDS = convertedValueDS.select("OBSERVATION1", "OBSERVATION2", "OBSERVATION3");
+                srcDS = datasetReadFromFile.select("OBSERVATION1", "OBSERVATION2", "OBSERVATION3");
+            } else if (rangeOfYears.equalsIgnoreCase("1756_1858")) {
+                convertedValueDS = getConvertedDS(rangeOfYears, convertedDS, CommonConstants.hpaToSwedish);
+                processedDS = convertedValueDS.na().fill(Double.NaN).select("OBSERVATION1", "OBSERVATION2", "OBSERVATION3");
+                srcDS = datasetReadFromFile.select(col("BARO_OBS1").as("OBSERVATION1"), col("BARO_OBS2").as("OBSERVATION2"), col("BARO_OBS3").as("OBSERVATION3"));
+            } else if (rangeOfYears.equalsIgnoreCase("1859_1861")) {
+                convertedValueDS = getConvertedDS(rangeOfYears, convertedDS, CommonConstants.hpaToSwedishInchesPointOne);
+                processedDS = convertedValueDS.select("OBSERVATION1", "OBSERVATION2", "OBSERVATION3");
+                srcDS = datasetReadFromFile.select(col("REDUCED_AIR_PRESSURE1").as("OBSERVATION1"), col("REDUCED_AIR_PRESSURE2").as("OBSERVATION2"), col("REDUCED_AIR_PRESSURE3").as("OBSERVATION3"));
+            }
+            if (processedDS.except(srcDS).count() == 0)
+                isConversionProper = true;
+            else
+                isConversionProper = false;
+            assert isConversionProper;
+        }else {
+            System.out.println("No Conversion of Unit is required");
+            assert !isConversionProper;
         }
-        if(rangeOfYears.equalsIgnoreCase("1756_1858"))
-        {
-            convertedValueDS = getConvertedDS(rangeOfYears,convertedDS,CommonConstants.hpaToSwedish);
-            processedDS = convertedValueDS.na().fill(Double.NaN).select("OBSERVATION1","OBSERVATION2","OBSERVATION3");
-            srcDS = datasetReadFromFile.select(col("BARO_OBS1").as("OBSERVATION1"),col("BARO_OBS2").as("OBSERVATION2"),col("BARO_OBS3").as("OBSERVATION3"));
-        }
-        if(rangeOfYears.equalsIgnoreCase("1859_1861"))
-        {
-            convertedValueDS = getConvertedDS(rangeOfYears,convertedDS,CommonConstants.hpaToSwedishInchesPointOne);
-            processedDS = convertedValueDS.select("OBSERVATION1","OBSERVATION2","OBSERVATION3");
-            srcDS = datasetReadFromFile.select(col("REDUCED_AIR_PRESSURE1").as("OBSERVATION1"),col("REDUCED_AIR_PRESSURE2").as("OBSERVATION2"),col("REDUCED_AIR_PRESSURE3").as("OBSERVATION3"));
-        }
-        if(processedDS.except(srcDS).count()==0)
-            isConversionProper = true;
-        else
-            isConversionProper = false;
-        assert isConversionProper;
     }
     public Dataset getConvertedDS(String rangeOfYears,Dataset convertedDS,Double unit)
     {
@@ -170,7 +177,7 @@ public class AirPressureTest {
     /**
      * Validates if the Air Pressure Range is within the hPa Valid Range recorded by SMHI.
      * Highest air pressure: 23 January 1907 in Kalmar and Visby 1063.7 hPa.[90]
-     * Lowest air pressure: 6 December 1895 HÃ¤rnÃ¶sand 938.4 hPa.[90]
+     * Lowest air pressure: 6 December 1895 Härnösand 938.4 hPa.[90]
      */
     @Test
     public void testValidAirPressureRange() {
