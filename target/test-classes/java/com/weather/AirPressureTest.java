@@ -177,7 +177,7 @@ public class AirPressureTest {
     /**
      * Validates if the Air Pressure Range is within the hPa Valid Range recorded by SMHI.
      * Highest air pressure: 23 January 1907 in Kalmar and Visby 1063.7 hPa.[90]
-     * Lowest air pressure: 6 December 1895 Härnösand 938.4 hPa.[90]
+     * Lowest air pressure: 6 December 1895 HÃ¤rnÃ¶sand 938.4 hPa.[90]
      */
     @Test
     public void testValidAirPressureRange() {

@@ -36,12 +36,16 @@ public class AirTemperature {
             File folder = new File(CommonConstants.airTemperatureDataDirectoryName);
             File[] listOfFiles = folder.listFiles();
             assert listOfFiles != null;
+            String filename = null;
             for (File listOfFile : listOfFiles) {
                 Dataset<Row> temperatureDS = null;
                 if (listOfFile.isFile()) {
-                    String filename = listOfFile.getName();
+                    filename = listOfFile.getName();
                     log.info("Processing Air Temperature Data File :: " + filename);
                     temperatureDS = readInputAndFrameDataset(spark, CommonConstants.airTemperatureDataDirectoryName, filename);
+                    //temperatureDS.show();
+                    if(temperatureDS==null)
+                        continue;
                     validData = CommonValidations.validateIfFileContainsRelevantData(filename, temperatureDS);
                 } else if (listOfFile.isDirectory()) {
                     log.info("Directory " + listOfFile.getName());
@@ -53,27 +57,29 @@ public class AirTemperature {
                     assert temperatureDS != null;
                     MergedTempDS = temperatureDS.union(MergedTempDS);
                 } else {
-                    log.error("File Doesn't Contain the Expected Years Data.");
+                    log.error("File Doesn't Contain the Expected Years Data:"+filename);
                 }
             }
-            assert MergedTempDS != null;
-            //MergedTempDS.show(50, false);
+            if(MergedTempDS != null) {
 
-            Dataset<Row> airTemperatureData = furtherDSProcessing(spark, MergedTempDS);
+                Dataset<Row> airTemperatureData = furtherDSProcessing(spark, MergedTempDS);
 
-            //Validate if Duplicate Data Exists in the Dataset.
-            boolean isduplicateExists = CommonValidations.duplicateExists(airTemperatureData);
-            if (isduplicateExists)
-                airTemperatureData = airTemperatureData.distinct();
-            //airTemperatureData.show(50, false);
+                //Validate if Duplicate Data Exists in the Dataset.
+                boolean isduplicateExists = CommonValidations.duplicateExists(airTemperatureData);
+                if (isduplicateExists)
+                    airTemperatureData = airTemperatureData.distinct();
+                //airTemperatureData.show(50, false);
 
-            boolean multipleRecordsPerDayExists = CommonValidations.checkForMultipleRecordsPerDay(spark, airTemperatureData);
+                boolean multipleRecordsPerDayExists = CommonValidations.checkForMultipleRecordsPerDay(spark, airTemperatureData);
 
-            CommonValidations.validateSchemaIntegrity(MergedTempDS.drop("_corrupt_record").drop("ISMANUAL"), airTemperatureData.drop("PUBLISHED_CATEGORY"));
+                CommonValidations.validateSchemaIntegrity(MergedTempDS.drop("_corrupt_record").drop("ISMANUAL"), airTemperatureData.drop("PUBLISHED_CATEGORY"));
 
-            //Validate if multiple Data Exists for a day.
-            if (!multipleRecordsPerDayExists)
-                writeToHDFS = writeToHDFS(airTemperatureData);
+                //Validate if multiple Data Exists for a day.
+                if (!multipleRecordsPerDayExists)
+                    writeToHDFS = writeToHDFS(airTemperatureData);
+            }else{
+                log.info("All the Records are Corrupted or Invalid");
+            }
             spark.stop();
         } catch (Exception e) {
             log.error("ERROR Occurred while processing AirTemperature to load to HDFS : " + e.getMessage());

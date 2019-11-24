@@ -53,7 +53,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="JUnit.AirPressureTest">
+  <component name="RunManager" selected="Application.LoadWeatherDataToHDFS">
     <configuration name="LoadWeatherDataToHDFS" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.weather.LoadWeatherDataToHDFS" />
       <module name="waetherforecast" />
@@ -132,9 +132,9 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.LoadWeatherDataToHDFS" />
         <item itemvalue="JUnit.AirPressureTest" />
         <item itemvalue="JUnit.AirPressureTest.testAirPressureConversion" />
-        <item itemvalue="Application.LoadWeatherDataToHDFS" />
         <item itemvalue="JUnit.AirPressureTest.testValidAirPressureRange" />
         <item itemvalue="JUnit.AirTemperatureTest.testAirTemperatureSchema" />
       </list>
@@ -150,7 +150,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1574349527372</updated>
-      <workItem from="1574349545583" duration="146149000" />
+      <workItem from="1574349545583" duration="149405000" />
     </task>
     <servers />
   </component>
@@ -167,16 +167,5 @@
         </entry>
       </map>
     </option>
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/com/weather/AirPressure.java</url>
-          <line>207</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>

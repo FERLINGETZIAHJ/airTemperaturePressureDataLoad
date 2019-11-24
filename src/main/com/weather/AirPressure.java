@@ -34,14 +34,17 @@ public class AirPressure {
             File folder = new File(directoryName);
             File[] listOfFiles = folder.listFiles();
             assert listOfFiles != null;
+            String filename = null;
             for (File listOfFile : listOfFiles) {
                 Dataset<Row> airPressureDS = null;
                 if (listOfFile.isFile()) {
-                    String filename = listOfFile.getName();
+                    filename = listOfFile.getName();
                     log.info("Processing Air Pressure Data File : " + filename );
                     String rangeOfYears = rangeMapping(filename);
                     //log.info("rangeOfYears: " + rangeOfYears);
                     Dataset rawAirPressureDS = read3TimesObsInputAndFrameDataset(spark, directoryName, filename, getCustomStructType(rangeOfYears));
+                    if(rawAirPressureDS==null)
+                        continue;
                     validData = CommonValidations.validateIfFileContainsRelevantData(filename, rawAirPressureDS);
                     if(validData)
                         airPressureDS = tohPaConversion(rawAirPressureDS, rangeOfYears, getRequiredSelectColumnsSeq());
@@ -52,20 +55,25 @@ public class AirPressure {
                     MergedAirPressureDS = airPressureDS;
                 } else if(airPressureDS != null) {
                     MergedAirPressureDS = airPressureDS.union(MergedAirPressureDS);
+                }else {
+                    log.error("File Doesn't Contain the Expected Years Data:"+filename);
                 }
             }
-            assert MergedAirPressureDS != null;
-            Dataset<org.apache.spark.sql.Row> MergedTempDSWithoutNULL = MergedAirPressureDS.na().fill(Double.NaN);
-            MergedTempDSWithoutNULL.cache();
+            if(MergedAirPressureDS != null) {
+                Dataset<org.apache.spark.sql.Row> MergedTempDSWithoutNULL = MergedAirPressureDS.na().fill(Double.NaN);
+                MergedTempDSWithoutNULL.cache();
 
-            boolean duplicateFlag = CommonValidations.duplicateExists(MergedTempDSWithoutNULL);
+                boolean duplicateFlag = CommonValidations.duplicateExists(MergedTempDSWithoutNULL);
 
-            if(duplicateFlag)
-                FinalAirPressureDataset = MergedTempDSWithoutNULL.distinct();
-            else
-                FinalAirPressureDataset = MergedTempDSWithoutNULL;
+                if (duplicateFlag)
+                    FinalAirPressureDataset = MergedTempDSWithoutNULL.distinct();
+                else
+                    FinalAirPressureDataset = MergedTempDSWithoutNULL;
 
-            writeToHDFSFlag = writePressureDataToHDFS(FinalAirPressureDataset);
+                writeToHDFSFlag = writePressureDataToHDFS(FinalAirPressureDataset);
+            }else {
+                log.info("All the Records are Corrupted or Invalid");
+            }
             spark.stop();
         } catch (Exception e) {
             log.info("Exception Occurred While Processing Pressure Data- "+e.getMessage());
@@ -162,7 +170,7 @@ public class AirPressure {
                     .format("csv")
                     .option("delimiter", "\t")
                     .load(directoryName + inputFileName).toDF();
-
+            //pressureRawDS.show();
             validPressureRawDS = writeBadRecordsToHDFS(pressureRawDS);
         } catch (Exception e) {
             log.error("Error Occurred while reading the Data from File : "+e.getMessage());

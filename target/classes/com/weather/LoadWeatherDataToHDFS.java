@@ -9,6 +9,7 @@ public class LoadWeatherDataToHDFS {
     {
         boolean dataLoadedComplete = false;
         log.info("Loading Air Temperature Data to HDFS.");
+        dataLoadedComplete = AirPressure.fetchAirPressureData();
             dataLoadedComplete = AirTemperature.fetchAirTemperatureData();
             if(dataLoadedComplete) {
                 log.info("Air Temperature Data Successfully loaded to HDFS.");
