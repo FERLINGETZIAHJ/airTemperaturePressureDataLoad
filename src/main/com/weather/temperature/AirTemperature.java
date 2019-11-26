@@ -17,48 +17,42 @@ import static org.apache.spark.sql.functions.*;
 
 public class AirTemperature {
     private static final Logger log = Logger.getLogger(AirTemperature.class.getName());
-    //private static SparkSession spark;
 
-    public static boolean fetchAirTemperatureData() {
-        //log.setLevel(Level.ERROR);
-        SparkSession spark = SparkSession.builder().appName("MyWeatherDataAnalysisApp").config("spark.master", "local").getOrCreate();
-        System.setProperty("hadoop.home.dir", "C:\\hadoop\\bin\\winutils.exe");
+    public static boolean fetchAirTemperatureData(SparkSession spark) {
         Logger.getLogger("org").setLevel(Level.OFF);
-        boolean writeToHDFSComplete = processAirTemperatureData(spark);
-        return writeToHDFSComplete;
-    }
-
-    private static boolean processAirTemperatureData(SparkSession spark) {
         boolean writeToHDFS = false;
         try {
             Dataset<org.apache.spark.sql.Row> MergedTempDS = null;
             boolean validData = true;
             File folder = new File(CommonConstants.airTemperatureDataDirectoryName);
             File[] listOfFiles = folder.listFiles();
-            assert listOfFiles != null;
-            String filename = null;
-            for (File listOfFile : listOfFiles) {
-                Dataset<Row> temperatureDS = null;
-                if (listOfFile.isFile()) {
-                    filename = listOfFile.getName();
-                    log.info("Processing Air Temperature Data File :: " + filename);
-                    temperatureDS = readInputAndFrameDataset(spark, CommonConstants.airTemperatureDataDirectoryName, filename);
-                    //temperatureDS.show();
-                    if (temperatureDS == null)
-                        continue;
-                    validData = CommonValidations.validateIfFileContainsRelevantData(filename, temperatureDS);
-                } else if (listOfFile.isDirectory()) {
-                    log.info("Directory " + listOfFile.getName());
-                }
+            if(listOfFiles != null) {
+                String filename = null;
+                for (File listOfFile : listOfFiles) {
+                    Dataset<Row> temperatureDS = null;
+                    if (listOfFile.isFile()) {
+                        filename = listOfFile.getName();
+                        log.info("Processing Air Temperature Data File :: " + filename);
+                        temperatureDS = readInputAndFrameDataset(spark, CommonConstants.airTemperatureDataDirectoryName, filename);
+                        //temperatureDS.show();
+                        if (temperatureDS == null)
+                            continue;
+                        validData = CommonValidations.validateIfFileContainsRelevantData(filename, temperatureDS);
+                    } else if (listOfFile.isDirectory()) {
+                        log.info("Directory " + listOfFile.getName());
+                    }
 
-                if (validData && MergedTempDS == null) {
-                    MergedTempDS = temperatureDS;
-                } else if (validData) {
-                    assert temperatureDS != null;
-                    MergedTempDS = temperatureDS.union(MergedTempDS);
-                } else {
-                    log.error("File Doesn't Contain the Expected Years Data:" + filename);
+                    if (validData && MergedTempDS == null) {
+                        MergedTempDS = temperatureDS;
+                    } else if (validData) {
+                        if (temperatureDS != null)
+                            MergedTempDS = temperatureDS.union(MergedTempDS);
+                    } else {
+                        log.error("File Doesn't Contain the Expected Years Data:" + filename);
+                    }
                 }
+            }else{
+                log.error("The Directory is empty. Please provide the valid Path for Input Files.");
             }
             if (MergedTempDS != null) {
 
@@ -80,7 +74,7 @@ public class AirTemperature {
             } else {
                 log.info("All the Records are Corrupted or Invalid");
             }
-            spark.stop();
+
         } catch (Exception e) {
             log.error("ERROR Occurred while processing AirTemperature to load to HDFS : " + e.getMessage());
             e.printStackTrace();
@@ -146,7 +140,6 @@ public class AirTemperature {
         } catch (Exception e) {
             log.error(e.getMessage());
         }
-        assert temperatureDS != null;
         return temperatureDS;
     }
 

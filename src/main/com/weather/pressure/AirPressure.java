@@ -2,83 +2,68 @@ package com.weather;
 
 import org.apache.spark.sql.*;
 import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
 import org.apache.spark.sql.types.StructType;
 import org.apache.spark.sql.types.*;
-
 import static org.apache.spark.sql.functions.*;
-
 import scala.collection.JavaConversions;
 import scala.collection.Seq;
 
 public class AirPressure {
     private static final Logger log = Logger.getLogger(AirPressure.class.getName());
 
-    public static boolean fetchAirPressureData() {
-        //log.setLevel(Level.ERROR);
-        SparkSession spark = SparkSession.builder().appName("MyAirPressureDataApp").config("spark.master", "local").getOrCreate();
-        System.setProperty("hadoop.home.dir", "C:\\hadoop\\bin\\winutils.exe");
-        Logger.getLogger("org").setLevel(Level.OFF);
-        boolean isWriteToHDFSComplete = processAirPressureData(spark, CommonConstants.airPressureDataDirectoryName);
-        return isWriteToHDFSComplete;
-    }
-
-    private static boolean processAirPressureData(SparkSession spark, String directoryName) {
+    public static boolean fetchAirPressureData(SparkSession spark) {
         boolean writeToHDFSFlag = false;
         try {
             Dataset<Row> MergedAirPressureDS = null;
             Dataset<Row> FinalAirPressureDataset = null;
-            boolean validData = false;
-            File folder = new File(directoryName);
+            boolean validData;
+            File folder = new File(CommonConstants.airPressureDataDirectoryName);
             File[] listOfFiles = folder.listFiles();
-            assert listOfFiles != null;
-            String filename = null;
-            for (File listOfFile : listOfFiles) {
-                Dataset<Row> airPressureDS = null;
-                if (listOfFile.isFile()) {
-                    filename = listOfFile.getName();
-                    log.info("Processing Air Pressure Data File : " + filename);
-                    String rangeOfYears = rangeMapping(filename);
-                    //log.info("rangeOfYears: " + rangeOfYears);
-                    Dataset rawAirPressureDS = read3TimesObsInputAndFrameDataset(spark, directoryName, filename, getCustomStructType(rangeOfYears));
-                    if (rawAirPressureDS == null)
-                        continue;
-                    validData = CommonValidations.validateIfFileContainsRelevantData(filename, rawAirPressureDS);
-                    if (validData)
-                        airPressureDS = tohPaConversion(rawAirPressureDS, rangeOfYears, getRequiredSelectColumnsSeq());
-                } else if (listOfFile.isDirectory()) {
-                    log.info("Directory " + listOfFile.getName());
+            if(listOfFiles!=null) {
+                String filename = null;
+                for (File listOfFile : listOfFiles) {
+                    Dataset<Row> airPressureDS = null;
+                    if (listOfFile.isFile()) {
+                        filename = listOfFile.getName();
+                        log.info("Processing Air Pressure Data File : " + filename);
+                        String rangeOfYears = rangeMapping(filename);
+                        //log.info("rangeOfYears: " + rangeOfYears);
+                        Dataset<Row> rawAirPressureDS = read3TimesObsInputAndFrameDataset(spark, CommonConstants.airPressureDataDirectoryName, filename, getCustomStructType(rangeOfYears));
+                        if (rawAirPressureDS == null)
+                            continue;
+                        validData = CommonValidations.validateIfFileContainsRelevantData(filename, rawAirPressureDS);
+                        if (validData)
+                            airPressureDS = tohPaConversion(rawAirPressureDS, rangeOfYears, getRequiredSelectColumnsSeq());
+                    } else if (listOfFile.isDirectory()) {
+                        log.info("Directory " + listOfFile.getName());
+                    }
+                    if (airPressureDS != null && MergedAirPressureDS == null) {
+                        MergedAirPressureDS = airPressureDS;
+                    } else if (airPressureDS != null) {
+                        MergedAirPressureDS = airPressureDS.union(MergedAirPressureDS);
+                    } else {
+                        log.error("File Doesn't Contain the Expected Years Data:" + filename);
+                    }
                 }
-                if (airPressureDS != null && MergedAirPressureDS == null) {
-                    MergedAirPressureDS = airPressureDS;
-                } else if (airPressureDS != null) {
-                    MergedAirPressureDS = airPressureDS.union(MergedAirPressureDS);
-                } else {
-                    log.error("File Doesn't Contain the Expected Years Data:" + filename);
-                }
+            }else {
+                log.error("The Directory is empty. Please provide the valid Path for Input Files.");
             }
             if (MergedAirPressureDS != null) {
                 Dataset<org.apache.spark.sql.Row> MergedTempDSWithoutNULL = MergedAirPressureDS.na().fill(Double.NaN);
                 MergedTempDSWithoutNULL.cache();
-
                 boolean duplicateFlag = CommonValidations.duplicateExists(MergedTempDSWithoutNULL);
-
                 if (duplicateFlag)
                     FinalAirPressureDataset = MergedTempDSWithoutNULL.distinct();
                 else
                     FinalAirPressureDataset = MergedTempDSWithoutNULL;
-
                 writeToHDFSFlag = writePressureDataToHDFS(FinalAirPressureDataset);
             } else {
                 log.info("All the Records are Corrupted or Invalid");
             }
-            spark.stop();
         } catch (Exception e) {
             log.info("Exception Occurred While Processing Pressure Data- " + e.getMessage());
             e.printStackTrace();
