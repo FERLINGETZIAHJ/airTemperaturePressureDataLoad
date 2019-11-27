@@ -1,5 +1,7 @@
-package com.weather;
+package com.weather.temperature;
 
+import com.weather.common.CommonConstants;
+import com.weather.common.CommonValidations;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
@@ -66,10 +68,10 @@ public class AirTemperature {
 
                 boolean multipleRecordsPerDayExists = CommonValidations.checkForMultipleRecordsPerDay(spark, airTemperatureData);
 
-                CommonValidations.validateSchemaIntegrity(MergedTempDS.drop("_corrupt_record").drop("ISMANUAL"), airTemperatureData.drop("PUBLISHED_CATEGORY"));
+                boolean isSchemaMatching = CommonValidations.validateSchemaIntegrity(MergedTempDS.drop("_corrupt_record").drop("ISMANUAL"), airTemperatureData.drop("PUBLISHED_CATEGORY"));
 
                 //Validate if multiple Data Exists for a day.
-                if (!multipleRecordsPerDayExists)
+                if (!multipleRecordsPerDayExists && isSchemaMatching)
                     writeToHDFS = writeToHDFS(airTemperatureData);
             } else {
                 log.info("All the Records are Corrupted or Invalid");
@@ -169,8 +171,9 @@ public class AirTemperature {
             if (badRecords != null && badRecords.count() > 0) {
                 log.info("Writing " + badRecords.count() + " Invalid Records to HDFS.");
                 badRecords.write().mode(SaveMode.Overwrite).csv(CommonConstants.airTemperatureHDFSFilePathForCorruptRecords);
-                validAirTemperatureDS = airTemperatureDS.filter(col("isAcceptableNullColumns").equalTo(true))
-                        .drop("_corrupt_record").drop("isAcceptableNullColumns");
+                if(airTemperatureDS.count() != badRecords.count())
+                    validAirTemperatureDS = airTemperatureDS.filter(col("isAcceptableNullColumns").equalTo(true))
+                            .drop("_corrupt_record").drop("isAcceptableNullColumns");
             } else {
                 validAirTemperatureDS = MergedTempDSWithoutNULL.drop("_corrupt_record", "isAcceptableNullColumns");
             }

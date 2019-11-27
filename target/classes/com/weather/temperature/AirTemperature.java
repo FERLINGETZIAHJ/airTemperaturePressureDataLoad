@@ -1,5 +1,7 @@
-package com.weather;
+package com.weather.temperature;
 
+import com.weather.common.CommonConstants;
+import com.weather.common.CommonValidations;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
@@ -17,50 +19,44 @@ import static org.apache.spark.sql.functions.*;
 
 public class AirTemperature {
     private static final Logger log = Logger.getLogger(AirTemperature.class.getName());
-    //private static SparkSession spark;
 
-    public static boolean fetchAirTemperatureData() {
-        //log.setLevel(Level.ERROR);
-        SparkSession spark = SparkSession.builder().appName("MyWeatherDataAnalysisApp").config("spark.master", "local").getOrCreate();
-        System.setProperty("hadoop.home.dir", "C:\\hadoop\\bin\\winutils.exe");
+    public static boolean fetchAirTemperatureData(SparkSession spark) {
         Logger.getLogger("org").setLevel(Level.OFF);
-        boolean writeToHDFSComplete = processAirTemperatureData(spark);
-        return writeToHDFSComplete;
-    }
-
-    private static boolean processAirTemperatureData(SparkSession spark) {
         boolean writeToHDFS = false;
         try {
             Dataset<org.apache.spark.sql.Row> MergedTempDS = null;
             boolean validData = true;
             File folder = new File(CommonConstants.airTemperatureDataDirectoryName);
             File[] listOfFiles = folder.listFiles();
-            assert listOfFiles != null;
-            String filename = null;
-            for (File listOfFile : listOfFiles) {
-                Dataset<Row> temperatureDS = null;
-                if (listOfFile.isFile()) {
-                    filename = listOfFile.getName();
-                    log.info("Processing Air Temperature Data File :: " + filename);
-                    temperatureDS = readInputAndFrameDataset(spark, CommonConstants.airTemperatureDataDirectoryName, filename);
-                    //temperatureDS.show();
-                    if(temperatureDS==null)
-                        continue;
-                    validData = CommonValidations.validateIfFileContainsRelevantData(filename, temperatureDS);
-                } else if (listOfFile.isDirectory()) {
-                    log.info("Directory " + listOfFile.getName());
-                }
+            if(listOfFiles != null) {
+                String filename = null;
+                for (File listOfFile : listOfFiles) {
+                    Dataset<Row> temperatureDS = null;
+                    if (listOfFile.isFile()) {
+                        filename = listOfFile.getName();
+                        log.info("Processing Air Temperature Data File :: " + filename);
+                        temperatureDS = readInputAndFrameDataset(spark, CommonConstants.airTemperatureDataDirectoryName, filename);
+                        //temperatureDS.show();
+                        if (temperatureDS == null)
+                            continue;
+                        validData = CommonValidations.validateIfFileContainsRelevantData(filename, temperatureDS);
+                    } else if (listOfFile.isDirectory()) {
+                        log.info("Directory " + listOfFile.getName());
+                    }
 
-                if (validData && MergedTempDS == null) {
-                    MergedTempDS = temperatureDS;
-                } else if (validData) {
-                    assert temperatureDS != null;
-                    MergedTempDS = temperatureDS.union(MergedTempDS);
-                } else {
-                    log.error("File Doesn't Contain the Expected Years Data:"+filename);
+                    if (validData && MergedTempDS == null) {
+                        MergedTempDS = temperatureDS;
+                    } else if (validData) {
+                        if (temperatureDS != null)
+                            MergedTempDS = temperatureDS.union(MergedTempDS);
+                    } else {
+                        log.error("File Doesn't Contain the Expected Years Data:" + filename);
+                    }
                 }
+            }else{
+                log.error("The Directory is empty. Please provide the valid Path for Input Files.");
             }
-            if(MergedTempDS != null) {
+            if (MergedTempDS != null) {
 
                 Dataset<Row> airTemperatureData = furtherDSProcessing(spark, MergedTempDS);
 
@@ -72,15 +68,15 @@ public class AirTemperature {
 
                 boolean multipleRecordsPerDayExists = CommonValidations.checkForMultipleRecordsPerDay(spark, airTemperatureData);
 
-                CommonValidations.validateSchemaIntegrity(MergedTempDS.drop("_corrupt_record").drop("ISMANUAL"), airTemperatureData.drop("PUBLISHED_CATEGORY"));
+                boolean isSchemaMatching = CommonValidations.validateSchemaIntegrity(MergedTempDS.drop("_corrupt_record").drop("ISMANUAL"), airTemperatureData.drop("PUBLISHED_CATEGORY"));
 
                 //Validate if multiple Data Exists for a day.
-                if (!multipleRecordsPerDayExists)
+                if (!multipleRecordsPerDayExists && isSchemaMatching)
                     writeToHDFS = writeToHDFS(airTemperatureData);
-            }else{
+            } else {
                 log.info("All the Records are Corrupted or Invalid");
             }
-            spark.stop();
+
         } catch (Exception e) {
             log.error("ERROR Occurred while processing AirTemperature to load to HDFS : " + e.getMessage());
             e.printStackTrace();
@@ -90,7 +86,8 @@ public class AirTemperature {
 
     /**
      * Processing the Air Temperature further by categorizing it based on the Publisher of Data and also filling empty records with NaN.
-     * @param spark - "Spark Session"
+     *
+     * @param spark               - "Spark Session"
      * @param mergedTemperatureDS - "Dataset fetched from File"
      * @return Dataset
      */
@@ -113,6 +110,7 @@ public class AirTemperature {
     /**
      * Method to read the Input File and frame Datasets.
      * Inputs : SparkSession and FileName
+     *
      * @param spark         - "Spark Session"
      * @param inputFileName - "Input File Path"
      * @return : DATASET Containing the Data from File.
@@ -144,14 +142,14 @@ public class AirTemperature {
         } catch (Exception e) {
             log.error(e.getMessage());
         }
-        assert temperatureDS != null;
         return temperatureDS;
     }
 
     /**
      * Writing the Invalid Records to HDFS to inspect later.
+     *
      * @param MergedTempDSWithoutNULL "Air Temperature Data with Corrupt Records"
-     *  return Dataset
+     *                                return Dataset
      */
     private static Dataset<Row> writeBadRecordsToHDFS(SparkSession spark, Dataset<Row> MergedTempDSWithoutNULL) {
         Dataset<Row> validAirTemperatureDS = null;
@@ -173,8 +171,9 @@ public class AirTemperature {
             if (badRecords != null && badRecords.count() > 0) {
                 log.info("Writing " + badRecords.count() + " Invalid Records to HDFS.");
                 badRecords.write().mode(SaveMode.Overwrite).csv(CommonConstants.airTemperatureHDFSFilePathForCorruptRecords);
-                validAirTemperatureDS = airTemperatureDS.filter(col("isAcceptableNullColumns").equalTo(true))
-                        .drop("_corrupt_record").drop("isAcceptableNullColumns");
+                if(airTemperatureDS.count() != badRecords.count())
+                    validAirTemperatureDS = airTemperatureDS.filter(col("isAcceptableNullColumns").equalTo(true))
+                            .drop("_corrupt_record").drop("isAcceptableNullColumns");
             } else {
                 validAirTemperatureDS = MergedTempDSWithoutNULL.drop("_corrupt_record", "isAcceptableNullColumns");
             }
@@ -187,8 +186,8 @@ public class AirTemperature {
 
     /**
      * Writing the Dataset to HDFS using Append Save Mode as many text files are read and stored.
-     * @param targetAirTemperatureDataset "Dataset with Air Temperature Details"
      *
+     * @param targetAirTemperatureDataset "Dataset with Air Temperature Details"
      */
     private static boolean writeToHDFS(Dataset<Row> targetAirTemperatureDataset) {
         boolean writeToHDFS = false;

@@ -1,5 +1,7 @@
 package com.weather;
 
+import com.weather.common.CommonValidations;
+import com.weather.temperature.AirTemperature;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;

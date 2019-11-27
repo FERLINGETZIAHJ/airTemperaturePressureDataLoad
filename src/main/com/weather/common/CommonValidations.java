@@ -1,4 +1,4 @@
-package com.weather;
+package com.weather.common;
 
 import org.apache.log4j.Logger;
 import org.apache.spark.sql.Dataset;
@@ -94,10 +94,7 @@ public class CommonValidations {
         String srcSchema = sourceDS.schema().toString();
         String targetSchema = targetDS.schema().toString();
         //ignoring the nullable column values.
-        if(srcSchema.replace("true","false").equalsIgnoreCase(targetSchema.replace("true","false")))
-            return true;
-        else
-            return false;
+        return srcSchema.replace("true", "false").equalsIgnoreCase(targetSchema.replace("true", "false"));
     }
 
 }

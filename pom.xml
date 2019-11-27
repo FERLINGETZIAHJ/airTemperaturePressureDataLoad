@@ -47,7 +47,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.weather.LoadWeatherDataToHDFS</mainClass>
+                            <mainClass>com.weather.main.LoadWeatherDataToHDFS</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -75,7 +75,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.4.0</version>
                 <configuration>
-                    <mainClass>com.weather.LoadWeatherDataToHDFS</mainClass>
+                    <mainClass>com.weather.main.LoadWeatherDataToHDFS</mainClass>
                 </configuration>
             </plugin>
 

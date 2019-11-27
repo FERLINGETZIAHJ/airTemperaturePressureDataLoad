@@ -1,4 +1,4 @@
-package com.weather;
+package com.weather.common;
 
 public class CommonConstants {
     public static final Double mmHgTohPa = 1.333224;

@@ -1,7 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="d8f6d457-7f9d-49ef-a1e5-233be6e7e88d" name="Default Changelist" comment="" />
+    <list default="true" id="d8f6d457-7f9d-49ef-a1e5-233be6e7e88d" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/data/mock/airPressure/stockholm_barometer_1756_1858.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/mock/airPressure/stockholm_barometer_1859_1861.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/mock/airPressure/stockholm_barometer_1862_1937.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/mock/airPressure/stockholm_barometer_1938_1960.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/mock/airPressure/stockholm_barometer_1961_2012.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/mock/stockholm_barometer_1756_1858.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/mock/stockholm_barometer_1859_1861.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/mock/stockholm_barometer_1862_1937.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/mock/stockholm_barometer_1938_1960.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/mock/stockholm_barometer_1961_2012.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/com/weather/common/CommonConstants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/com/weather/common/CommonConstants.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/com/weather/common/CommonValidations.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/com/weather/common/CommonValidations.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/com/weather/common/FieldNames.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/com/weather/common/FieldNames.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/com/weather/main/LoadWeatherDataToHDFS.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/com/weather/main/LoadWeatherDataToHDFS.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/com/weather/pressure/AirPressure.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/com/weather/pressure/AirPressure.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/com/weather/temperature/AirTemperature.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/com/weather/temperature/AirTemperature.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/weather/AirPressureTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/weather/AirPressureTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/weather/AirTemperatureTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/weather/AirTemperatureTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/META-INF/waetherforecast.kotlin_module" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/weather/AirPressure.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/weather/AirPressure.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/weather/AirTemperature$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/weather/AirTemperature.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/weather/AirTemperature.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/weather/CommonConstants.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/weather/CommonConstants.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/weather/CommonValidations.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/weather/CommonValidations.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/weather/FieldNames.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/weather/FieldNames.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/weather/LoadWeatherDataToHDFS.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/weather/LoadWeatherDataToHDFS.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/java/com/weather/AirPressure.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/java/com/weather/AirTemperature.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/java/com/weather/CommonConstants.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/java/com/weather/FieldNames.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/java/com/weather/LoadWeatherDataToHDFS.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-com.test.SampleTest.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-com.weather.AirPressureTest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/target/surefire-reports/TEST-com.weather.AirPressureTest.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-com.weather.AirTemperatureTest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/target/surefire-reports/TEST-com.weather.AirTemperatureTest.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/com.test.SampleTest.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/com.weather.AirPressureTest.txt" beforeDir="false" afterPath="$PROJECT_DIR$/target/surefire-reports/com.weather.AirPressureTest.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/com.weather.AirTemperatureTest.txt" beforeDir="false" afterPath="$PROJECT_DIR$/target/surefire-reports/com.weather.AirTemperatureTest.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/META-INF/waetherforecast.kotlin_module" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/weather/AirPressureTest.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/test-classes/com/weather/AirPressureTest.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/weather/AirTemperatureTest.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/test-classes/com/weather/AirTemperatureTest.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/java/com/weather/AirPressureTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/target/test-classes/java/com/weather/AirPressureTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/java/com/weather/AirTemperatureTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/target/test-classes/java/com/weather/AirTemperatureTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/weatherData-tests.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/weatherData-tests.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/weatherData.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/weatherData.jar" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,11 +112,11 @@
   </component>
   <component name="RunManager" selected="Application.LoadWeatherDataToHDFS">
     <configuration name="LoadWeatherDataToHDFS" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="com.weather.LoadWeatherDataToHDFS" />
+      <option name="MAIN_CLASS_NAME" value="com.weather.main.LoadWeatherDataToHDFS" />
       <module name="waetherforecast" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.weather.*" />
+          <option name="PATTERN" value="com.weather.pressure.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -71,7 +128,7 @@
       <module name="waetherforecast" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.weather.*" />
+          <option name="PATTERN" value="com.weather.pressure.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -86,7 +143,7 @@
       <module name="waetherforecast" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.weather.*" />
+          <option name="PATTERN" value="com.weather.pressure.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -102,7 +159,7 @@
       <module name="waetherforecast" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.weather.*" />
+          <option name="PATTERN" value="com.weather.pressure.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -118,7 +175,7 @@
       <module name="waetherforecast" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.weather.*" />
+          <option name="PATTERN" value="com.weather.pressure.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -150,7 +207,8 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1574349527372</updated>
-      <workItem from="1574349545583" duration="149405000" />
+      <workItem from="1574349545583" duration="150337000" />
+      <workItem from="1574784685541" duration="12454000" />
     </task>
     <servers />
   </component>
@@ -162,7 +220,9 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
           </value>
         </entry>
       </map>

@@ -1,14 +1,21 @@
-package com.weather;
+package com.weather.pressure;
 
+import com.weather.common.CommonConstants;
+import com.weather.common.CommonValidations;
 import org.apache.spark.sql.*;
 import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
 import org.apache.spark.sql.types.StructType;
 import org.apache.spark.sql.types.*;
+
 import static org.apache.spark.sql.functions.*;
+
 import scala.collection.JavaConversions;
 import scala.collection.Seq;
 
@@ -19,11 +26,11 @@ public class AirPressure {
         boolean writeToHDFSFlag = false;
         try {
             Dataset<Row> MergedAirPressureDS = null;
-            Dataset<Row> FinalAirPressureDataset = null;
+            Dataset<Row> FinalAirPressureDataset;
             boolean validData;
             File folder = new File(CommonConstants.airPressureDataDirectoryName);
             File[] listOfFiles = folder.listFiles();
-            if(listOfFiles!=null) {
+            if(listOfFiles != null) {
                 String filename = null;
                 for (File listOfFile : listOfFiles) {
                     Dataset<Row> airPressureDS = null;
@@ -32,7 +39,7 @@ public class AirPressure {
                         log.info("Processing Air Pressure Data File : " + filename);
                         String rangeOfYears = rangeMapping(filename);
                         //log.info("rangeOfYears: " + rangeOfYears);
-                        Dataset<Row> rawAirPressureDS = read3TimesObsInputAndFrameDataset(spark, CommonConstants.airPressureDataDirectoryName, filename, getCustomStructType(rangeOfYears));
+                        Dataset rawAirPressureDS = read3TimesObsInputAndFrameDataset(spark, CommonConstants.airPressureDataDirectoryName, filename, getCustomStructType(rangeOfYears));
                         if (rawAirPressureDS == null)
                             continue;
                         validData = CommonValidations.validateIfFileContainsRelevantData(filename, rawAirPressureDS);
@@ -49,17 +56,20 @@ public class AirPressure {
                         log.error("File Doesn't Contain the Expected Years Data:" + filename);
                     }
                 }
-            }else {
+            }else{
                 log.error("The Directory is empty. Please provide the valid Path for Input Files.");
             }
             if (MergedAirPressureDS != null) {
                 Dataset<org.apache.spark.sql.Row> MergedTempDSWithoutNULL = MergedAirPressureDS.na().fill(Double.NaN);
                 MergedTempDSWithoutNULL.cache();
+
                 boolean duplicateFlag = CommonValidations.duplicateExists(MergedTempDSWithoutNULL);
+
                 if (duplicateFlag)
                     FinalAirPressureDataset = MergedTempDSWithoutNULL.distinct();
                 else
                     FinalAirPressureDataset = MergedTempDSWithoutNULL;
+
                 writeToHDFSFlag = writePressureDataToHDFS(FinalAirPressureDataset);
             } else {
                 log.info("All the Records are Corrupted or Invalid");
@@ -178,8 +188,9 @@ public class AirPressure {
                     .cache();
             if (badRecords != null && badRecords.count() > 0) {
                 log.info("Writing " + badRecords.count() + " Invalid Records to HDFS.");
-                badRecords.write().mode(SaveMode.Overwrite).csv(CommonConstants.airTemperatureHDFSFilePathForCorruptRecords);
-                validAirPressureDS = pressureRawDS.filter(col("_corrupt_record").isNull())
+                badRecords.write().mode(SaveMode.Overwrite).csv(CommonConstants.airPressureHDFSFilePathForCorruptRecords);
+                if(pressureRawDS.count() != badRecords.count())
+                    validAirPressureDS = pressureRawDS.filter(col("_corrupt_record").isNull())
                         .drop("_corrupt_record");
             } else {
                 validAirPressureDS = pressureRawDS.drop("_corrupt_record");
@@ -200,7 +211,7 @@ public class AirPressure {
      * @return dataset
      */
     public static Dataset<Row> tohPaConversion(Dataset<Row> validPressureRawDS, String rangeOfYears, Seq<Column> requiredSelectColumns) {
-        Double conversionUnit = null;
+        Double conversionUnit;
         List<String> columnNames = new ArrayList<>();
         Dataset<Row> airPressureDS = validPressureRawDS.withColumn("SPLIT_RANGE", lit(rangeOfYears));
         log.info(rangeOfYears);
