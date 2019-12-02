@@ -21,6 +21,8 @@ The Main Objective:
 4. Place the jar ns the desired location and run using spark-submit command.
 Ex: spark-submit --class com.weather.main.LoadWeatherDataToHDFS --master yarn --deploy-mode client /home/user/weatherData.jar 
 
+Note: Give the input data path in the common constants class.
+
 # Module Description:
 
 The Data is read, processed and written to HDFS. The Steps are explained as below.
